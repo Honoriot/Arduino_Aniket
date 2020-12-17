@@ -3,7 +3,7 @@
 #include <LiquidCrystal_I2C.h>
 
 #define Flag_data_add 0
-#define Time_set_add 1
+#define Time_data_add 1
 
 // Set the LCD address to 0x27 for a 16 chars and 2 line display
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
@@ -41,15 +41,13 @@ void setup()
 
   if(EEPROM.read(Flag_data_add)==255){
     EEPROM.update(Flag_data_add, 0);
-    flag = EEPROM.read(Flag_data_add);
   }
 
-  if(EEPROM.read(Time_set_add)==255){
-    EEPROM.update(Time_set_add,5);
-    Time = EEPROM.read(Time_set_add);
+  if(EEPROM.read(Time_data_add)==255){
+    EEPROM.update(Time_data_add,5);
   }
   flag = EEPROM.read(Flag_data_add);
-  Time = EEPROM.read(Time_set_add);
+  Time = EEPROM.read(Time_data_add);
   Serial.print("Flag: " );Serial.println(flag);
   lcd.backlight();
   lcd.print("Hello, world!");
@@ -58,20 +56,27 @@ void setup()
 
 void loop()
 {
-  play(45);
+  if(digitalRead(button_2)==1){
+    digitalWrite(led_2, HIGH);
+    setting_mode();
+  }
+  else{
+    digitalWrite(led_2, LOW);
+    play_mode(Time);
+  }
 }
 
-void play(int Time){
+void play_mode(int Time_to_Play){
     if(digitalRead(button_1)==1 and flag==0){
     digitalWrite(led_1, HIGH);
     digitalWrite(switch_1, LOW);
     lcd.clear();
     lcd.print("Motor On: ");
-    lcd.print(time_set);
+    lcd.print(Time_to_Play);
     flag = 1;
     EEPROM.update(Flag_data_add, flag);
     delay(500);
-    for(int y=0;y<time_set;y=y+1){
+    for(int y=0;y<Time_to_Play;y=y+1){
       for(int i=0;i<=60;i=i+1){
         lcd.setCursor(0,1);
         lcd.print(y);
@@ -136,5 +141,30 @@ void setting_mode(){
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Setting Mode");
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("Present time: ");
+  lcd.print(Time);
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("Set Time: Press");
   
+  while(1){
+    lcd.setCursor(0,1);
+    lcd.print(Time);
+    delay(500);
+    if(digitalRead(button_1)==1 and Time<60){
+      Time = Time + 5;
+    }
+    lcd.setCursor(0,1);
+    lcd.print(Time);
+    delay(1000);
+    if(digitalRead(button_1)==0){
+      break;
+    }
+    if(Time == 60 or Time > 60){
+      Time = 0;
+    }
+  }
+  EEPROM.update(Time_data_add,Time);
 }
