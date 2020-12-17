@@ -45,7 +45,7 @@ void setup()
   }
 
   if(EEPROM.read(Time_set_add)==255){
-    EEPROM.update(Time_set_add, 0);
+    EEPROM.update(Time_set_add,5);
     Time = EEPROM.read(Time_set_add);
   }
   flag = EEPROM.read(Flag_data_add);
